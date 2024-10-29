@@ -206,9 +206,12 @@ $RECYCLE.BIN/
 /.vscode/
 venv_*/
 /data/
+/output/
 **/tmp/**
 tmp/
 temp/
+
+*.xlsx
 
 
 

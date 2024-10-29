@@ -1,3 +1,5 @@
+# PATH: etl/loader.py
+
 import pandas as pd
 
 # Fase 1: Carga y Limpieza de Datos
