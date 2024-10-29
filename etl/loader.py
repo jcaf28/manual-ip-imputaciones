@@ -3,28 +3,35 @@
 import pandas as pd
 
 # Fase 1: Carga y Limpieza de Datos
-def cargar_y_limpiar_datos(path_descarga, path_usuarios, path_wbs, path_fichajes):
-    # Cargar archivos
-    descarga_imputaciones = pd.read_excel(path_descarga)
-    listado_usuarios = pd.read_excel(path_usuarios)
-    wbs_por_clave = pd.read_excel(path_wbs)
-    fichajes_sap = pd.read_excel(path_fichajes)
+def cargar_y_limpiar_datos(paths):
+    # Crear lista de DataFrames
+    dataframes = []
     
-    # Eliminar espacios y tabulaciones al inicio y al final en todas las columnas de tipo string
-    descarga_imputaciones = descarga_imputaciones.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
-    listado_usuarios = listado_usuarios.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
-    wbs_por_clave = wbs_por_clave.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
-    fichajes_sap = fichajes_sap.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
-    
-    # Agregar columna "chapa" en T_DESCARGA_IMPUTACIONES
-    descarga_imputaciones['chapa'] = descarga_imputaciones['Usuario'].str[:5].astype(int)
-    
-    # Filtrar registros validados en T_DESCARGA_IMPUTACIONES
-    descarga_imputaciones = descarga_imputaciones[descarga_imputaciones['VALIDADA'] == 'S']
+    # Cargar y limpiar cada archivo en paths
+    for i, path in enumerate(paths):
+        df = pd.read_excel(path)
+        
+        # Eliminar espacios en todas las columnas de tipo string
+        df = df.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
+        
+        # Aplicar filtros específicos solo en descarga_imputaciones (primer archivo)
+        if i == 0:
+            # Agregar columna "chapa"
+            df['chapa'] = df['Usuario'].str[:5].astype(int)
+            
+            # Filtrar registros validados
+            df = df[df['VALIDADA'] == 'S']
+            
+            # Eliminar tareas con OBRA_1 = 0
+            df = df[df['OBRA_1'].notna()]  # Filtrar filas donde OBRA_1 no es NaN
+            df['OBRA_1'] = df['OBRA_1'].astype(int)  # Convertir OBRA_1 a entero
+            df = df[df['OBRA_1'] != 0]  # Filtrar filas donde OBRA_1 no es 0
+            df = df[df['IdTarea'] != 'E37'] # Filtrar filas donde IdTarea no es E37
 
-    # Eliminar las tareas con OBRA_1 = 0
-    descarga_imputaciones = descarga_imputaciones[descarga_imputaciones['OBRA_1'].notna()]
-    descarga_imputaciones['OBRA_1'] = descarga_imputaciones['OBRA_1'].astype(int)
-    descarga_imputaciones = descarga_imputaciones[descarga_imputaciones['OBRA_1'] != 0]
+            print("stop")
+            
+        # Agregar DataFrame a la lista de resultados
+        dataframes.append(df)
     
-    return descarga_imputaciones, listado_usuarios, wbs_por_clave, fichajes_sap
+    # Retorna un array de DataFrames
+    return dataframes

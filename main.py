@@ -1,7 +1,9 @@
+# PATH: main.py
+
 # main.py
 from etl.loader import cargar_y_limpiar_datos
-from etl.transformer import transformar_datos
-from etl.exporter import generar_csv_salida
+from etl.transformer import generar_tabla_imputaciones, generar_cuadre_horas
+from etl.exporter import generar_csv_salida, generar_cuadre_xlsx
 from config.config import PATH_DESCARGA, PATH_USUARIOS, PATH_WBS, PATH_FICHAJES, OUTPUT_DIR
 
 """
@@ -28,11 +30,24 @@ AES1;30/09/2024;13144;2.5;RO60061.00;5105;RO-1010-1-T-B-W-MP-MAPB3;;;BG14
 """
 
 def ejecutar_etl():
-    descarga_imputaciones, listado_usuarios, wbs_por_clave, fichajes_sap = cargar_y_limpiar_datos(
-        PATH_DESCARGA, PATH_USUARIOS, PATH_WBS, PATH_FICHAJES
-    )
-    horas_proyecto = transformar_datos(descarga_imputaciones, listado_usuarios, wbs_por_clave, fichajes_sap)
+    # Crear un array con las rutas de los archivos
+    paths = [PATH_DESCARGA, PATH_USUARIOS, PATH_WBS, PATH_FICHAJES]
+    
+    # Ejecutar fase de carga y limpieza, recibe un array de DataFrames
+    dataframes = cargar_y_limpiar_datos(paths)
+    
+    # Asignar cada DataFrame a una variable específica para claridad
+    descarga_imputaciones, listado_usuarios, wbs_por_clave, fichajes_sap = dataframes
+
+    # Generar cuadre de horas
+
+    cuadre_horas = generar_cuadre_horas(descarga_imputaciones, fichajes_sap)
+    
+    # Ejecutar transformación y generación del archivo de salida
+    horas_proyecto = generar_tabla_imputaciones(descarga_imputaciones, listado_usuarios, wbs_por_clave, fichajes_sap)
+
     generar_csv_salida(horas_proyecto, OUTPUT_DIR)
+    generar_cuadre_xlsx(cuadre_horas, OUTPUT_DIR)
 
 if __name__ == "__main__":
     ejecutar_etl()

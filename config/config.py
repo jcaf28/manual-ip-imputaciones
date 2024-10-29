@@ -1,3 +1,5 @@
+# PATH: config/config.py
+
 # config/config.py
 import os
 
