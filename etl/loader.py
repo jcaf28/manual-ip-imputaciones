@@ -2,33 +2,35 @@
 
 import pandas as pd
 
-# Fase 1: Carga y Limpieza de Datos
-def cargar_y_limpiar_datos(paths):
-    # Diccionario para almacenar los DataFrames con nombres descriptivos
-    dataframes = {}
-
-    # Mapear nombres de tabla a cada ruta del archivo
-    tabla_nombres = {
-        "descarga_imputaciones": paths[0],
-        "listado_usuarios": paths[1],
-        "wbs_por_clave": paths[2],
-        "fichajes_sap": paths[3]
+def cargar_y_limpiar_datos(*paths):
+    # Definir las columnas mínimas requeridas para cada archivo
+    columnas_minimas = {
+        "descarga_imputaciones": ["Id.", "Usuario", "Fecha", "Clave Obra", "CodObra", "OBRA", "Proceso", 
+                                  "IdTarea", "TAREA", "Descripción", "Plano", "Horas", "Euros", "VALIDADA", 
+                                  "TIPO", "OBRA_1", "QTY_1", "OBRA_2", "QTY_2", "Nº Mod. OT"],
+        "listado_usuarios": ["IdUsuario", "Usuario", "WBS", "Cost", "Cost_2"],
+        "wbs_por_clave": ["PROYECTO BAAN", "PROYECTO SAP", "WBS PROCESOS (FMOP3)", "WBS UTILLAJES (FU300)", "PSA"],
+        "fichajes_sap": ["Centro", "Sociedad", "Intervalo de fechas", "Número de empleado", "Nombre del empleado", 
+                          "Supervisor", "Nombre del equipo", "ClockedHRS", "ManufacturingHrs", "OverCostHrs", 
+                          "IndirectHrs", "ProjectHrs", "MaintenanceHrs", "TotConfirmHrs", "TotalApprovedHours", 
+                          "DifferenceClockedConfirmed", "DifferenceConfirmedApproved"]
     }
     
+    dataframes = []
+    tabla_nombres = ["descarga_imputaciones", "listado_usuarios", "wbs_por_clave", "fichajes_sap"]
+    
     # Cargar y limpiar cada archivo en paths
-    for nombre_tabla, path in tabla_nombres.items():
+    for nombre_tabla, path in zip(tabla_nombres, paths):
         df = pd.read_excel(path)
 
         # Eliminar espacios en todas las columnas de tipo string
         df = df.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
+        
+        # Verificar que las columnas mínimas estén presentes en el archivo
+        columnas_faltantes = [col for col in columnas_minimas[nombre_tabla] if col not in df.columns]
+        if columnas_faltantes:
+            raise ValueError(f"El archivo '{nombre_tabla}' no tiene las siguientes columnas mínimas necesarias: {', '.join(columnas_faltantes)}")
 
-        # Aplicar filtros específicos solo en la tabla descarga_imputaciones
-        if nombre_tabla == "descarga_imputaciones":
-            # Agregar columna "chapa"
-            df['chapa'] = df['Usuario'].str[:5].astype(int)
-
-        # Añadir el DataFrame al diccionario con el nombre de la tabla
-        dataframes[nombre_tabla] = df
+        dataframes.append(df)
     
-    # Retorna un diccionario de DataFrames con nombres de tabla
-    return dataframes
+    return dataframes  # Devolvemos lista de DataFrames

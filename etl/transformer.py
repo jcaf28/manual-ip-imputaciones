@@ -2,7 +2,17 @@
 
 import pandas as pd
 
-# Fase 2: Transformación de Datos
+# Fase 2.1
+def generar_variables_negocio(descarga_imputaciones, listado_usuarios, wbs_por_clave, fichajes_sap):
+    # Generar variable 'chapa' específica para 'descarga_imputaciones'
+    descarga_imputaciones['chapa'] = descarga_imputaciones['Usuario'].str[:5].astype(int)
+
+    # Aquí puedes agregar otras transformaciones de negocio previas que necesites en el futuro
+    # Por ejemplo, podrías agregar cálculos adicionales o normalizar datos en cualquiera de los DataFrames.
+
+    return descarga_imputaciones, listado_usuarios, wbs_por_clave, fichajes_sap
+
+# Fase 2.2: Generación de tablas por cruce de Datos
 def generar_tabla_imputaciones(descarga_imputaciones, listado_usuarios, wbs_por_clave, fichajes_sap):
     
     # FILTRADO: solo horas validadas y eliminando tareas específicas y obras inválidas
@@ -33,8 +43,6 @@ def generar_tabla_imputaciones(descarga_imputaciones, listado_usuarios, wbs_por_
                                                   else row['WBS UTILLAJES (FU300)'], axis=1)
     
     # Borrar columnas innecesarias y reordenar
-
-
     return df
 
 
@@ -48,11 +56,11 @@ def generar_cuadre_horas(descarga_imputaciones, fichajes_sap):
     df.rename(columns={'Horas': 'HorasImputadas'}, inplace=True)
     
     # Obtener solo las columnas necesarias de fichajes_sap y renombrar 'Número de empleado' a 'chapa'
-    df = fichajes_sap[['Número de empleado', 'ClockedHRS']].copy()
-    df.rename(columns={'Número de empleado': 'chapa', 'ClockedHRS': 'HorasRegistradas'}, inplace=True)
+    fichajes_sap = fichajes_sap[['Número de empleado', 'ClockedHRS']].copy()
+    fichajes_sap.rename(columns={'Número de empleado': 'chapa', 'ClockedHRS': 'HorasRegistradas'}, inplace=True)
     
     # Hacer un merge entre horas_imputadas y horas_registradas por 'chapa'
-    cuadre_horas = pd.merge(df, df, on='chapa', how='outer')
+    cuadre_horas = pd.merge(df, fichajes_sap, on='chapa', how='outer')
     
     # Calcular la diferencia entre las horas imputadas y las horas registradas
     cuadre_horas['Diferencia'] = cuadre_horas['HorasImputadas'] - cuadre_horas['HorasRegistradas']

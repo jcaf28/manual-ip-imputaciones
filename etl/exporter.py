@@ -8,15 +8,20 @@ def generar_csv_salida(horas_proyecto, output_dir):
     # Asegurarse de que la carpeta output existe
     os.makedirs(output_dir, exist_ok=True)
 
-    mes = 10
-    
-    # Crear nombre del archivo con fecha y hora actual
+    # Obtener fecha y hora actual para el nombre de los archivos
     timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    output_path = f"{output_dir}/salida_ETL_{mes}_{timestamp}.xlsx"
     
-    # Guardar en Excel
-    horas_proyecto.to_excel(output_path, index=False)
-    print(f"Archivo exportado a {output_path}")
+    # Iterar sobre cada valor único en la columna 'Cost'
+    for cost_value in horas_proyecto['Cost'].unique():
+        # Filtrar el DataFrame por el valor actual de 'Cost'
+        df_filtrado = horas_proyecto[horas_proyecto['Cost'] == cost_value]
+        
+        # Crear el nombre del archivo basado en el valor de 'Cost' y el timestamp
+        output_path = f"{output_dir}/SAP_EXPORT_{cost_value}_{timestamp}.csv"
+        
+        # Guardar en formato CSV
+        df_filtrado.to_csv(output_path, index=False)
+        print(f"Archivo exportado a {output_path}")
 
 
 # etl/exporter.py
