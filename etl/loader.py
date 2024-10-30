@@ -1,8 +1,8 @@
 # PATH: etl/loader.py
 
 import pandas as pd
-from etl.constants import COLUMNAS_MINIMAS
-from etl.utils import verificar_mes_unico
+from etl._constants import COLUMNAS_MINIMAS
+from etl._utils import verificar_mes_unico
 
 def cargar_y_limpiar_datos(*paths):
     dataframes = []

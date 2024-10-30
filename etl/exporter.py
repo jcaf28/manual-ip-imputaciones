@@ -4,6 +4,7 @@ from datetime import datetime
 import os
 
 # Fase 3: Generación del Archivo de Salida
+
 def generar_csv_salida(horas_proyecto, output_dir):
     # Iterar sobre cada valor único en la columna 'Cost'
     for cost_value in horas_proyecto['Cost'].unique():
@@ -14,9 +15,10 @@ def generar_csv_salida(horas_proyecto, output_dir):
         timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         output_path = f"{output_dir}/SAP_EXPORT_{cost_value}_{timestamp}.csv"
         
-        # Guardar en formato CSV
-        df_filtrado.to_csv(output_path, index=False)
+        # Guardar en formato CSV con ; como separador
+        df_filtrado.to_csv(output_path, sep=';', index=False)
         print(f"Archivo exportado a {output_path}")
+
 
 def generar_cuadre_xlsx(cuadre_horas, output_dir):
     # Crear nombre de archivo con timestamp
