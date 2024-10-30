@@ -1,6 +1,7 @@
 # PATH: etl/transformer.py
 
 import pandas as pd
+from etl.utils import extraer_centro_por_chapa, extraer_fecha_imputacion
 
 # Fase 2.1
 def generar_variables_negocio(descarga_imputaciones, listado_usuarios, wbs_por_clave, fichajes_sap):
@@ -16,39 +17,47 @@ def generar_variables_negocio(descarga_imputaciones, listado_usuarios, wbs_por_c
 def generar_tabla_imputaciones(descarga_imputaciones, listado_usuarios, wbs_por_clave, fichajes_sap):
     
     # FILTRADO: solo horas validadas y eliminando tareas específicas y obras inválidas
-    df = descarga_imputaciones
+    df = descarga_imputaciones.copy()
 
     # Filtrar registros validados
     df = df[df['VALIDADA'] == 'S']
     
-    # Eliminar tareas con OBRA_1 = 0
+    # Eliminar tareas con OBRA_1 = 0 o NaN
     df = df[df['OBRA_1'].notna()]  # Filtrar filas donde OBRA_1 no es NaN
     df['OBRA_1'] = df['OBRA_1'].astype(int)  # Convertir OBRA_1 a entero
     df = df[df['OBRA_1'] != 0]  # Filtrar filas donde OBRA_1 no es 0
-    df['OBRA_1'] = df['OBRA_1'].astype(str) # Convertir OBRA_1 de vuelta a str para el cruce posterior
+    df['OBRA_1'] = df['OBRA_1'].astype(str)  # Convertir OBRA_1 de vuelta a str para el cruce posterior
 
-
+    # Eliminar tareas específicas
     df = df[df['IdTarea'] != 'E37']
     df = df[df['TAREA'] != 'AUTORIZACIÓN DE SALIDAS Y AUSENCIAS']
 
-    # Agrupación de horas por proyecto
+    # Agrupación de horas por proyecto y chapa
     df = df.groupby(['chapa', 'OBRA_1'])['Horas'].sum().reset_index()
     
-    # Merge con T_LISTADO_USUARIOS para obtener datos de Cost y Cost_2
+    # Merge con listado_usuarios para obtener datos de Cost y Cost_2
     df = df.merge(listado_usuarios, left_on='chapa', right_on='IdUsuario', how='left')
     
-    # Merge con T_WBS_por_clave para obtener el WBS correcto en función de OBRA_1 y Proceso
+    # Merge con wbs_por_clave para obtener el WBS correcto en función de OBRA_1
     df = df.merge(wbs_por_clave, left_on='OBRA_1', right_on='PROYECTO BAAN', how='left')
     
-    # Modificar la columna "WBS" basado en el valor actual de la columna WBS (FMOP3 o FU300)
-    df['WBS'] = df.apply(lambda row: row['WBS PROCESOS (FMOP3)'] 
-                                                  if 'FMOP3' in row['WBS'] 
-                                                  else row['WBS UTILLAJES (FU300)'], axis=1)
+    # Modificar la columna "WBS" basado en el valor actual de la columna WBS
+    df['WBS'] = df.apply(
+        lambda row: row['WBS PROCESOS (FMOP3)'] if 'FMOP3' in row['WBS'] else row['WBS UTILLAJES (FU300)'],
+        axis=1
+    )
     
-    # Borrar columnas innecesarias y reordenar
+    # Obtener "centro" y "fecha_imput" de fichajes_sap mediante funciones auxiliares
+    centro_df = extraer_centro_por_chapa(fichajes_sap)
+    fecha_imput_df = extraer_fecha_imputacion(fichajes_sap)
+    
+    # Realizar el merge para añadir "centro" y "fecha_imput" a df
+    df = df.merge(centro_df, on='chapa', how='left')
+    df = df.merge(fecha_imput_df, on='chapa', how='left')
+    
     return df
 
-
+# Fase 2.3: Generar el cuadre de horas
 def generar_cuadre_horas(descarga_imputaciones, fichajes_sap):
     
     #Filtramos solo horas validadas

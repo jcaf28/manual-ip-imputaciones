@@ -1,6 +1,5 @@
 # PATH: config/config.py
 
-# config/config.py
 import os
 
 DATA_PATH = os.path.join(".", "archivos", "dev db")

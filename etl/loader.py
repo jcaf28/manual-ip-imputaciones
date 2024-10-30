@@ -1,21 +1,10 @@
 # PATH: etl/loader.py
 
 import pandas as pd
+from etl.constants import COLUMNAS_MINIMAS
+from etl.utils import verificar_mes_unico
 
 def cargar_y_limpiar_datos(*paths):
-    # Definir las columnas mínimas requeridas para cada archivo
-    columnas_minimas = {
-        "descarga_imputaciones": ["Id.", "Usuario", "Fecha", "Clave Obra", "CodObra", "OBRA", "Proceso", 
-                                  "IdTarea", "TAREA", "Descripción", "Plano", "Horas", "Euros", "VALIDADA", 
-                                  "TIPO", "OBRA_1", "QTY_1", "OBRA_2", "QTY_2", "Nº Mod. OT"],
-        "listado_usuarios": ["IdUsuario", "Usuario", "WBS", "Cost", "Cost_2"],
-        "wbs_por_clave": ["PROYECTO BAAN", "PROYECTO SAP", "WBS PROCESOS (FMOP3)", "WBS UTILLAJES (FU300)", "PSA"],
-        "fichajes_sap": ["Centro", "Sociedad", "Intervalo de fechas", "Número de empleado", "Nombre del empleado", 
-                          "Supervisor", "Nombre del equipo", "ClockedHRS", "ManufacturingHrs", "OverCostHrs", 
-                          "IndirectHrs", "ProjectHrs", "MaintenanceHrs", "TotConfirmHrs", "TotalApprovedHours", 
-                          "DifferenceClockedConfirmed", "DifferenceConfirmedApproved"]
-    }
-    
     dataframes = []
     tabla_nombres = ["descarga_imputaciones", "listado_usuarios", "wbs_por_clave", "fichajes_sap"]
     
@@ -27,9 +16,13 @@ def cargar_y_limpiar_datos(*paths):
         df = df.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
         
         # Verificar que las columnas mínimas estén presentes en el archivo
-        columnas_faltantes = [col for col in columnas_minimas[nombre_tabla] if col not in df.columns]
+        columnas_faltantes = [col for col in COLUMNAS_MINIMAS[nombre_tabla] if col not in df.columns]
         if columnas_faltantes:
             raise ValueError(f"El archivo '{nombre_tabla}' no tiene las siguientes columnas mínimas necesarias: {', '.join(columnas_faltantes)}")
+        
+        # Verificar que todos los registros de 'Intervalo de fechas' pertenezcan al mismo mes para fichajes_sap
+        if nombre_tabla == "fichajes_sap":
+            verificar_mes_unico(df)
 
         dataframes.append(df)
     

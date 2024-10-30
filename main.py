@@ -1,3 +1,5 @@
+# PATH: main.py
+
 # main.py
 from etl.loader import cargar_y_limpiar_datos
 from etl.transformer import generar_tabla_imputaciones, generar_cuadre_horas, generar_variables_negocio
