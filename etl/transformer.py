@@ -1,7 +1,7 @@
 # PATH: etl/transformer.py
 
 import pandas as pd
-from etl.utils import extraer_centro_por_chapa, extraer_fecha_imputacion
+from etl.utils import extraer_centro_por_chapa, extraer_fecha_imputacion, reordenar_y_formatear_columnas
 
 # Fase 2.1
 def generar_variables_negocio(descarga_imputaciones, listado_usuarios, wbs_por_clave, fichajes_sap):
@@ -54,6 +54,9 @@ def generar_tabla_imputaciones(descarga_imputaciones, listado_usuarios, wbs_por_
     # Realizar el merge para añadir "centro" y "fecha_imput" a df
     df = df.merge(centro_df, on='chapa', how='left')
     df = df.merge(fecha_imput_df, on='chapa', how='left')
+    
+    # Llamar a la función para reordenar y formatear las columnas
+    df = reordenar_y_formatear_columnas(df)
     
     return df
 

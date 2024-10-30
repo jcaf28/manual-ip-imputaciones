@@ -31,3 +31,40 @@ def extraer_fecha_imputacion(fichajes_sap, intervalo_fechas_col='Intervalo de fe
     fecha_imput['fecha_imput'] = fecha_imput[intervalo_fechas_col].apply(lambda x: x.split(' to ')[-1].strip())
     fecha_imput['fecha_imput'] = pd.to_datetime(fecha_imput['fecha_imput'], format='%Y-%m-%d')
     return fecha_imput.rename(columns={'Número de empleado': 'chapa'})[['chapa', 'fecha_imput']]
+
+def reordenar_y_formatear_columnas(df):
+    """
+    Reordena y formatea las columnas de `df` según el formato especificado:
+    - Reordena las columnas en el orden específico.
+    - Convierte 'fecha_imput' al formato 'dd/mm/YYYY'.
+    - Añade dos columnas vacías llamadas 'Vacía1' y 'Vacía2'.
+
+    Parámetros:
+        df (pd.DataFrame): El DataFrame de entrada.
+
+    Retorna:
+        pd.DataFrame: El DataFrame modificado con el orden y formato de columnas deseado.
+    """
+    # Convertir 'fecha_imput' a formato 'dd/mm/YYYY'
+    df['fecha_imput'] = pd.to_datetime(df['fecha_imput']).dt.strftime('%d/%m/%Y')
+
+    # Añadir columnas vacías 'Vacía1' y 'Vacía2'
+    df['Vacía1'] = ''
+    df['Vacía2'] = ''
+
+    # Seleccionar y reordenar las columnas
+    columnas_finales = [
+        'centro',
+        'fecha_imput',
+        'chapa',
+        'Horas',
+        'Cost',
+        'Cost_2',
+        'WBS',
+        'Vacía1',
+        'Vacía2',
+        'PSA'
+    ]
+    df = df[columnas_finales]
+
+    return df
