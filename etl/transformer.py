@@ -1,7 +1,7 @@
 # PATH: etl/transformer.py
 
 import pandas as pd
-from etl._utils import extraer_centro_por_chapa, extraer_fecha_imputacion, reordenar_y_formatear_columnas
+from etl._utils import extraer_centro_por_chapa, extraer_fecha_imputacion, reordenar_y_formatear_columnas, dividir_horas
 
 # Fase 2.1
 def generar_variables_negocio(descarga_imputaciones, listado_usuarios, wbs_por_clave, fichajes_sap):
@@ -35,6 +35,9 @@ def generar_tabla_imputaciones(descarga_imputaciones, listado_usuarios, wbs_por_
     # Agrupación de horas por proyecto y chapa
     df = df.groupby(['chapa', 'OBRA_1'])['Horas'].sum().reset_index()
     
+    # Dividir imputaciones de más de 90 horas en grupos de máximo 90 horas
+    df = dividir_horas(df, max_horas=90)
+
     # Merge con listado_usuarios para obtener datos de Cost y Cost_2
     df = df.merge(listado_usuarios, left_on='chapa', right_on='IdUsuario', how='left')
     
@@ -46,7 +49,7 @@ def generar_tabla_imputaciones(descarga_imputaciones, listado_usuarios, wbs_por_
         lambda row: row['WBS PROCESOS (FMOP3)'] if 'FMOP3' in row['WBS'] else row['WBS UTILLAJES (FU300)'],
         axis=1
     )
-    
+
     # Obtener "centro" y "fecha_imput" de fichajes_sap mediante funciones auxiliares
     centro_df = extraer_centro_por_chapa(fichajes_sap)
     fecha_imput_df = extraer_fecha_imputacion(fichajes_sap)

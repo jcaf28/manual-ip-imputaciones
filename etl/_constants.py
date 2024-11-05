@@ -1,4 +1,4 @@
-# PATH: etl/constants.py
+# PATH: etl/_constants.py
 
 # Definir columnas mínimas requeridas para cada archivo
 COLUMNAS_MINIMAS = {

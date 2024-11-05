@@ -68,3 +68,26 @@ def reordenar_y_formatear_columnas(df):
     df = df[columnas_finales]
 
     return df
+
+def dividir_horas(df, max_horas=90):
+    """
+    Divide las imputaciones que excedan un máximo de horas en múltiples filas de máximo `max_horas`.
+    
+    Parameters:
+    - df (pd.DataFrame): DataFrame que contiene las imputaciones con columnas 'chapa', 'OBRA_1' y 'Horas'.
+    - max_horas (int): Límite máximo de horas por fila.
+    
+    Returns:
+    - pd.DataFrame: DataFrame con filas divididas en grupos de máximo `max_horas`.
+    """
+    rows = []
+    for _, row in df.iterrows():
+        horas = row['Horas']
+        while horas > max_horas:
+            row_copy = row.copy()
+            row_copy['Horas'] = max_horas
+            rows.append(row_copy)
+            horas -= max_horas
+        row['Horas'] = round(horas, 2)  # Redondeo del valor final antes de añadir
+        rows.append(row)
+    return pd.DataFrame(rows)
