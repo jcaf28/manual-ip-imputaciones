@@ -25,11 +25,32 @@ def extraer_centro_por_chapa(fichajes_sap, chapa_col='Número de empleado', cent
 
 def extraer_fecha_imputacion(fichajes_sap, intervalo_fechas_col='Intervalo de fechas'):
     """
-    Extrae la última fecha de 'Intervalo de fechas' y devuelve un DataFrame con 'chapa' y 'fecha_imput'.
+    Extrae la última fecha del mes natural en el cual está inserto el intervalo de fechas
+    y devuelve un DataFrame con 'chapa' y 'fecha_imput'.
+    
+    Parámetros:
+    - fichajes_sap: DataFrame que contiene los datos de fichajes.
+    - intervalo_fechas_col: Nombre de la columna que contiene el intervalo de fechas.
+    
+    Retorna:
+    - DataFrame con las columnas 'chapa' y 'fecha_imput' que corresponde a la última
+      fecha del mes natural de la fecha extraída.
     """
+    # Copiamos las columnas relevantes
     fecha_imput = fichajes_sap[[intervalo_fechas_col, 'Número de empleado']].copy()
-    fecha_imput['fecha_imput'] = fecha_imput[intervalo_fechas_col].apply(lambda x: x.split(' to ')[-1].strip())
+    
+    # Extraemos la última fecha del intervalo
+    fecha_imput['fecha_imput'] = fecha_imput[intervalo_fechas_col].apply(
+        lambda x: x.split(' to ')[-1].strip()
+    )
+    
+    # Convertimos la fecha extraída a tipo datetime
     fecha_imput['fecha_imput'] = pd.to_datetime(fecha_imput['fecha_imput'], format='%Y-%m-%d')
+    
+    # Calculamos la última fecha del mes natural correspondiente
+    fecha_imput['fecha_imput'] = fecha_imput['fecha_imput'] + pd.offsets.MonthEnd(0)
+    
+    # Renombramos la columna 'Número de empleado' a 'chapa' y seleccionamos las columnas finales
     return fecha_imput.rename(columns={'Número de empleado': 'chapa'})[['chapa', 'fecha_imput']]
 
 def reordenar_y_formatear_columnas(df):

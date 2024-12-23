@@ -26,7 +26,7 @@ def generar_tabla_imputaciones(descarga_imputaciones, listado_usuarios, wbs_por_
     df = df[df['OBRA_1'].notna()]  # Filtrar filas donde OBRA_1 no es NaN
     df['OBRA_1'] = df['OBRA_1'].astype(int)  # Convertir OBRA_1 a entero
     df = df[df['OBRA_1'] != 0]  # Filtrar filas donde OBRA_1 no es 0
-    df['OBRA_1'] = df['OBRA_1'].astype(str)  # Convertir OBRA_1 de vuelta a str para el cruce posterior
+    df['OBRA_1'] = df['OBRA_1'].astype(str) # Convertir OBRA_1 de vuelta a str para el cruce posterior
 
     # Eliminar tareas específicas
     df = df[df['IdTarea'] != 'E37']
