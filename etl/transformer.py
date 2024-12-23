@@ -22,11 +22,8 @@ def generar_tabla_imputaciones(descarga_imputaciones, listado_usuarios, wbs_por_
     # Filtrar registros validados
     df = df[df['VALIDADA'] == 'S']
     
-    # Eliminar tareas con OBRA_1 = 0 o NaN
-    df = df[df['OBRA_1'].notna()]  # Filtrar filas donde OBRA_1 no es NaN
-    df['OBRA_1'] = df['OBRA_1'].astype(int)  # Convertir OBRA_1 a entero
-    df = df[df['OBRA_1'] != 0]  # Filtrar filas donde OBRA_1 no es 0
-    df['OBRA_1'] = df['OBRA_1'].astype(str) # Convertir OBRA_1 de vuelta a str para el cruce posterior
+    # Eliminar tareas con OBRA_1 que consistan únicamente en ceros
+    df = df[~df['OBRA_1'].str.fullmatch(r"0+", na=False)]  # Filtrar filas donde OBRA_1 no sea todo ceros
 
     # Eliminar tareas específicas
     df = df[df['IdTarea'] != 'E37']
@@ -40,9 +37,13 @@ def generar_tabla_imputaciones(descarga_imputaciones, listado_usuarios, wbs_por_
 
     # Merge con listado_usuarios para obtener datos de Cost y Cost_2
     df = df.merge(listado_usuarios, left_on='chapa', right_on='IdUsuario', how='left')
+
+    print("debug")
     
     # Merge con wbs_por_clave para obtener el WBS correcto en función de OBRA_1
     df = df.merge(wbs_por_clave, left_on='OBRA_1', right_on='PROYECTO BAAN', how='left')
+
+    print("debug")
     
     # Modificar la columna "WBS" basado en el valor actual de la columna WBS
     df['WBS'] = df.apply(
