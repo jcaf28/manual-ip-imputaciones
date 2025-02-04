@@ -37,13 +37,9 @@ def generar_tabla_imputaciones(descarga_imputaciones, listado_usuarios, wbs_por_
 
     # Merge con listado_usuarios para obtener datos de Cost y Cost_2
     df = df.merge(listado_usuarios, left_on='chapa', right_on='IdUsuario', how='left')
-
-    print("debug")
     
     # Merge con wbs_por_clave para obtener el WBS correcto en función de OBRA_1
     df = df.merge(wbs_por_clave, left_on='OBRA_1', right_on='PROYECTO BAAN', how='left')
-
-    print("debug")
     
     # Modificar la columna "WBS" basado en el valor actual de la columna WBS
     df['WBS'] = df.apply(
